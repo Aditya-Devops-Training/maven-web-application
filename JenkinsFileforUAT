@@ -1,0 +1,32 @@
+node{
+
+def mavenHome = tool name: "maven-3.8.6"
+
+stage('giturlUAT'){
+
+git branch: 'uat', credentialsId: '85674606-e9a2-46ad-b3ce-79d700347344', url: 'https://github.com/Aditya-Devops-Training/maven-web-application.git'
+
+}
+
+stage('mavenBuildUAT'){
+
+sh "${mavenHome}/bin/mvn clean package"
+}
+
+stage('nexusRepositoryUAT'){
+
+sh "${mavenHome}/bin/mvn clean deploy"
+
+}
+
+stage('DeployToTomcatUAT'){
+
+sshagent(['b7470be5-ba9d-4e63-9736-f89a193d2893']) {
+
+sh "scp -o StrictHostKeyChecking=no target/maven-web-application.war ec2-user@172.31.46.221:/opt/tomcat/apache-tomcat-9.0.65/webapps"    
+
+}
+
+}
+
+}
