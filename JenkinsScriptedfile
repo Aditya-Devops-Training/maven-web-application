@@ -1,0 +1,31 @@
+node {
+
+def mavenHome = tool name: "maven-3.8.6"
+
+properties([buildDiscarder(logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '5', daysToKeepStr: '', numToKeepStr: '5')), pipelineTriggers([pollSCM('* * * * *')])])
+
+stage('PullGitcode'){
+
+git branch: 'development', credentialsId: '85674606-e9a2-46ad-b3ce-79d700347344', url: 'https://github.com/Aditya-Devops-Training/maven-web-application.git'
+
+}
+
+stage('mavenBuild'){
+
+sh "${mavenHome}/bin/mvn clean package"
+
+}
+
+stage('nexusRepository'){
+
+sh "${mavenHome}/bin/mvn clean deploy"
+}
+
+stage ('DeploymentToTomcat'){
+sshagent(['b7470be5-ba9d-4e63-9736-f89a193d2893']) {
+    sh "scp -o StrictHostKeyChecking=no target/maven-web-application.war ec2-user@172.31.46.221:/opt/tomcat/apache-tomcat-9.0.65/webapps/"
+}
+
+}
+
+}
